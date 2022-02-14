@@ -45,7 +45,7 @@ jobs:
                   
   publish:
     name: Publish to container registry
-    if: contains (github.ref, 'RC') || contains (github.ref, 'RELEASE')
+    #if: contains (github.ref, 'RC') || contains (github.ref, 'RELEASE')
     runs-on: ubuntu-latest
     needs: build
     steps:
