@@ -85,7 +85,7 @@ jobs:
  
   deploy-stage:
     name: Deploy application to stage AKS 
-    if: contains (github.ref, 'RC')
+    #if: contains (github.ref, 'RC')
     environment:
       name: stage-environment
     needs: publish
