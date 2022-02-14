@@ -41,18 +41,7 @@ jobs:
     - name: Save Maven cache
       uses: skjolber/maven-cache-github-action@v1
       with:
-        step: save       
-
-#    - name: Official SonarQube Scan
-#      uses: SonarSource/sonarqube-scan-action@v1.0.0
-#      with:
-#        # Additional arguments to the sonar-scanner
-#        args: # optional
-#        # Set the sonar.projectBaseDir analysis property
-#        projectBaseDir: Application    
-#      env:
-#        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-#        SONAR_HOST_URL: ${{ secrets.SONAR_URL }}         
+        step: save      
                   
   publish:
     name: Publish to container registry
