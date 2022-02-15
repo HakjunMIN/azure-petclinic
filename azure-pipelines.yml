@@ -16,9 +16,9 @@ resources:
 variables:
 
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: '<your-registry-connection>'
-  imageRepository: '<your-project(imagename)>'
-  containerRegistry: '<your-registry>.azurecr.io'
+  dockerRegistryServiceConnection: 'azurespringacr'
+  imageRepository: 'petclinic'
+  containerRegistry: 'azurespringacr.azurecr.io'
   dockerfilePath: '**/Dockerfile'
   tag: '$(Build.BuildId)'
   imagePullSecret: 'azurespringacr1580782c-auth'
@@ -39,13 +39,7 @@ stages:
       vmImage: $(vmImageName)
       
     steps:
-    - task: AzureKeyVault@1
-      inputs:
-        azureSubscription: 'keyvault'                    ## YOUR_SERVICE_CONNECTION_NAME
-        KeyVaultName: 'andy-cert-keyvault'                         ## YOUR_KEY_VAULT_NAME
-        SecretsFilter: 'postgres-url, postgres-user, postgres-pass, sonar-url, sonar-token'                      ## YOUR_SECRET_NAME. Default value: *
-        RunAsPreJob: false                                   ## Make the secret(s) available to the whole job
-
+    
     - task: Cache@2
       displayName: Cache Maven local repo  
       inputs:
@@ -69,20 +63,12 @@ stages:
         mavenOptions: '$(MAVEN_OPTS)'
         mavenAuthenticateFeed: false
         effectivePomSkip: false
-        options: '-DPOSTGRES_URL=$(postgres-url) -DPOSTGRES_USER=$(postgres-user) -DPOSTGRES_PASS=$(postgres-pass)'
+        options: 
         goals: "-B verify"
  
-    - task: Maven@3
-      displayName: Static Analysis on SonarQube
-      inputs:     
-        mavenPomFile: 'Application/pom.xml'
-        mavenOptions: '$(MAVEN_OPTS)'
-        goals: "-B sonar:sonar"
-        options: "-Dsonar.projectKey=azure-spring -Dsonar.host.url=$(sonar-url) -Dsonar.login=$(sonar-token)"
-    
     - task: Docker@2
       displayName: Build and push an image to container registry
-      condition: OR(contains(variables['build.sourceBranch'], 'RC'), contains(variables['build.sourceBranch'], 'RELEASE'))
+      # condition: OR(contains(variables['build.sourceBranch'], 'RC'), contains(variables['build.sourceBranch'], 'RELEASE'))
       inputs:
         command: buildAndPush
         repository: $(imageRepository)
@@ -105,7 +91,7 @@ stages:
     displayName: Deploy
     pool:
       vmImage: $(vmImageName)
-    environment: 'stage.staged48e'
+    environment: 'stage-2.default'
     strategy:
       runOnce:
         deploy:
@@ -129,39 +115,3 @@ stages:
                 $(imagePullSecret)
               containers: |
                 $(containerRegistry)/$(imageRepository):$(tag)
-
-- stage: Deploy_prod
-  displayName: Deploy production
-  dependsOn: Build
-  condition: contains(variables['build.sourceBranch'], 'RELEASE')
-
-  jobs:
-  - deployment: Deploy
-    displayName: Deploy
-    pool:
-      vmImage: $(vmImageName)
-    environment: 'prod.prodd82'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: KubernetesManifest@0
-            displayName: Create imagePullSecret
-            inputs:
-              action: createSecret
-              secretName: $(imagePullSecret)
-              dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
-
-          - task: KubernetesManifest@0
-            displayName: Deploy to Kubernetes cluster
-            inputs:
-              action: deploy
-              manifests: |
-                $(Pipeline.Workspace)/manifests/deployment.yml
-                $(Pipeline.Workspace)/manifests/secretproviderclass.yml
-                $(Pipeline.Workspace)/manifests/service.yml
-              imagePullSecrets: |
-                $(imagePullSecret)
-              containers: |
-                $(containerRegistry)/$(imageRepository):$(tag)                
-
