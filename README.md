@@ -15,7 +15,7 @@
 ---
 
 ## Intro
-https://ideaboardz.com/for/SKR-start/4338369
+~~https://ideaboardz.com/for/SKR-start/4338369~~
 
 ## Quick Start with DevOps Starter
 
@@ -192,7 +192,7 @@ https://ideaboardz.com/for/SKR-start/4338369
 ```
 
 ## 역할 별 리파지토리 구성 방안
-
+* 아래는 어플리케이션, 테스트자동화 코드, 인프라 프로비저닝 코드를 예시로 한 리파지토리 샘플임.  
 ![리파지토리샘플](img/devops-code-repo.png)
 
 |순번| 설명 | 특징|
@@ -209,7 +209,7 @@ https://ideaboardz.com/for/SKR-start/4338369
 
 ![Git branch](img/gitbranch.png)
 
-* Main (혹은 Master) 브랜치 기준으로 Feature 브랜치로 기능 개발. 계발계에 배포 필요할 경우 태깅으로 통제(ex: 1.0-SNAPSHOT1)
+* Main (혹은 Master) 브랜치 기준으로 Feature 브랜치로 기능 개발. 계발계에 배포 필요할 경우 태깅으로 통제(ex: 1.0-SNAPSHOT)
 * Merge는 Pull Request(PR)로 리뷰 후 Merge할 수 있도록 강제
 * 릴리즈를 위해서는 Release브랜치 생성. Main에 Merge되지 않은 Feature브랜치는 Release에 PR후 Merge
 * RC버전 태깅(1.0-RC1)으로 Stage계 배포, RELEASE버전 태깅(1.0-RELEASE)으로 운영계 배포. 운영계 배포 후 Main에 Merge
@@ -264,6 +264,7 @@ trigger:
         RunAsPreJob: false
 
 ```
+
 * Azure Potal - 사용중인 Azure KeyVault의 `액세스 정책`에서 `AzureSubscription`에 설정된 Service Principal id에 권한을 설정해줘야함.
 * Azure DevOps - Project Settings - Service Connections - AzureSubscription 정보 - `Manage Service Principal` 에서 Service Principal (애플리케이션ID) 확인
 * 사용중인 KeyVault - `액세스 정책` - Create - 사용권한 (Get, List), Principal ID (어플리케이션ID)를 설정
@@ -280,7 +281,6 @@ variables:
   MAVEN_OPTS: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER)'
 ```
 
-* Maven Package실행 시 테스트 자동화 코드 실행을 위해 Postgres 접속정보를 KeyVault에서 가져와 옵션으로 넣어줘야 함.
 * 완성된 Cache와 Maven Task는 아래와 같음.
 
 ```yaml
@@ -307,7 +307,7 @@ variables:
         mavenOptions: '$(MAVEN_OPTS)'
         mavenAuthenticateFeed: false
         effectivePomSkip: false
-        options: '-DPOSTGRES_URL=$(postgres-url) -DPOSTGRES_USER=$(postgres-user) -DPOSTGRES_PASS=$(postgres-pass)'
+        options: ''
         goals: "-B verify"
 ```
 
@@ -390,7 +390,7 @@ condition: OR(contains(variables['build.sourceBranch'], 'RC'), contains(variable
 
 * 클러스터에 `--enable-managed-identity`를 활성화하면 아래와 같이 objectId (Managed ID)를 얻을 수 있음.
   
-```
+```json
  "identity": {
         "clientId": "90e35a2c-3a2e-495a-88a6-9ca1cd5d710a",
         "objectId": "668c37cb-ee54-44bf-bc42-03e420240b5d",
@@ -435,7 +435,7 @@ condition: OR(contains(variables['build.sourceBranch'], 'RC'), contains(variable
     tenantId: "<your-tenant-id>"
     ```
 
-* [secretproviderclass](manifests/secretproviderclass.yml)파일의 수정이 완료되면 Pipeline yaml 파일 내 Kubernetes Manifest파일에 추가해야 함.
+* [secretproviderclass](manifests/secretproviderclass.yml)파일의 수정이 완료되면 Pipeline yaml 파일 내 `manifests`에 추가해야 함.
 
 ```yaml
          - task: KubernetesManifest@0
@@ -450,6 +450,9 @@ condition: OR(contains(variables['build.sourceBranch'], 'RC'), contains(variable
 ```
 
 * Deployment Manifest 파일([deployment.yml](manifests/deployment.yml))에 Image정보 수정, Application Insight 사용시 아래의 `APPINSIGHTS_INSTRUMENTATIONKEY` 할당
+
+  > Application Insight는 별도의 설정없이 `pom.xml`에서 `applicationinsights-spring-boot-starter` 디펜던시만 추가해주면 됨. 단 Custom Metric을 얻기 위해서는 [여기](https://docs.microsoft.com/ko-kr/azure/azure-monitor/app/java-in-process-agent)를 참고
+
 * PostgreSQL 사용 시 아래 `SPRING_PROFILES_ACTIVE`에 `postgres`로 할당. [`application-postgres.properties`](Application/src/main/resources/application-postgres.properties)을 참고하게됨.
   
     ```yaml
@@ -465,7 +468,7 @@ condition: OR(contains(variables['build.sourceBranch'], 'RC'), contains(variable
             - name: APPINSIGHTS_INSTRUMENTATIONKEY
               value: "<your-applicationInsights-InstrumentationKey>"   
             - name: SPRING_PROFILES_ACTIVE
-              value: ""   
+              value: "" # PostGreSQL사용 시 `postgres` 
     ```
 
 #### 배포 Environment 구성
@@ -483,8 +486,8 @@ condition: OR(contains(variables['build.sourceBranch'], 'RC'), contains(variable
 
 #### CD 파이프라인 작성
 
-* Azure DevOps Pipeline Editor를 실행하여 기 생성된 배포 파이프라인을 Stage 배포 Stage와 Production 배포 Stage를 별도로 구성
-    
+* Azure DevOps Pipeline Editor를 실행하여 기 생성된 배포 파이프라인을 Stage 배포 Stage와 Production 배포 Stage를 별도로 구성.
+  
     > Stage용어가 동일하여 혼란스러우나 배포의 [`Stage계`](https://en.wikipedia.org/wiki/Deployment_environment#Staging)는 운영환경과 유사한 테스트환경이라고 보면되고 [`Pipeline Stage`](https://docs.microsoft.com/ko-kr/azure/devops/pipelines/process/stages?view=azure-devops&tabs=yaml)는 작업의 최상단 그룹임.
 
 #### Deploy시 승인 과정 추가
@@ -566,8 +569,6 @@ git push --tags
 
 #### 전체 [`azure-pipeline`](azure-pipelines.yml) 샘플 참고
 
-**모든 Hands-on이 완료되면 사용하지 않는 리소스는 정리**
-
 ---
 
 ## GitHub Action
@@ -580,7 +581,7 @@ git push --tags
 
 * 샘플 코드는 https://github.com/HakjunMIN/azure-petclinic 에서 개인 리파지토리로 Fork하거나 Clone후 [여기](#리파지토리-구성)의 방법으로 개인 라파지토리에 재연결
 
-> 환경 설정 자동화를 위해 DevOps Starter를 사용하여 구성할 수 있으나 항목 별 이해를 돕기 위해 수작으로 아래와 같이 작성.
+> 환경 설정 자동화를 위해 DevOps Starter를 사용하여 구성할 수 있으나 항목 별 이해를 돕기 위해 수작업으로 아래와 같이 작성.
 
 ### Service Princaipal 생성
 
@@ -825,6 +826,8 @@ jobs:
   
 > 본 페이지 맨 위 쪽 샘플) 프로젝트의 뱃지를 참고할 것. 이 프로젝트의 뱃지가 아닌 다른 샘플 프로젝트의 뱃지임.
 
+### **모든 Hands-on이 완료되면 사용하지 않는 리소스는 정리**
+
 ## 참고자료
 
 ### Azure Pipeline 참고자료
@@ -842,4 +845,4 @@ jobs:
 
 ## 회고
 
-https://ideaboardz.com/for/SKR-Retrospective/4338366
+~~https://ideaboardz.com/for/SKR-Retrospective/4338366~~
