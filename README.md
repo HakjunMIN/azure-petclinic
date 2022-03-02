@@ -384,7 +384,7 @@ condition: OR(contains(variables['build.sourceBranch'], 'RC'), contains(variable
 * AKS에서 CSI와 Managed ID를 활성화 시킴
 
 ```bash
-    az aks enable-addons -a azure-keyvault-secrets-provider -n <aks-name> -g <resource-group>
+    az aks enable-addons azure-keyvault-secrets-provider -n <aks-name> -g <resource-group>
     az aks update -n <aks-name> -g <resource-group> --enable-managed-identity
 ```
 
