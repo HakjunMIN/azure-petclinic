@@ -23,7 +23,7 @@
 
 ### Helm Chart내에서 위 이미지 버전을 사용하도록 변경
 
-bash 스크립트로 image tag값 변경
+bash 스크립트로 `values.yaml` 내 image tag값 변경
 
 ```yaml
     - task: Bash@3
@@ -62,7 +62,7 @@ Deploy와 Rollback을 별개의 Stage로 구성하고 Rollback은 필요시에�
 
 * `Continuous Deployment Trigger`를 enabled해야함.
 
-![CD trigger]()
+![CD trigger](img/cdtrigger.png)
 
 ### Deploy Stage
 
@@ -82,11 +82,13 @@ Cluster, Namespace, Command, Release Name, Vaule File등을 입력. Set Value �
 * kubectl rollout
 pod를 rollout 방식으로 반영. (helm 의 recreate pod 기능이 deprecate됨)
 
+![rollout](img/kube-rollout.png)
+
 ### Rollback Stage
 
 * Rollback Task는 아래와 같이 이루어짐
 
-![rollback]()
+![rollback](img/helm-rollback.png)
 
 * Helm rollback
 
