@@ -369,6 +369,8 @@ condition: OR(contains(variables['build.sourceBranch'], 'RC'), contains(variable
 
 * Deploy Stage를 별도로 구성하여 CI, CD Stage를 분리함.
 
+> Classic Release를 사용할 경우 이 [문서](release-pipeline.md)를 참고함
+
 #### AKS 설정
 
 * AKS 접속
