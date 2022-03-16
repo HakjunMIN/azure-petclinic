@@ -70,7 +70,7 @@ Deploy와 Rollback을 별개의 Stage로 구성하고 Rollback은 필요시에�
 
 ![deploy](img/release-deploy.png)
 
-> Helm 은 '22/03 기준 최신 버전인 `3.8.0`사용
+> Helm 은 '22/03 기준 최신 버전인 `3.8.1`사용
 
 * Helm upgrade
 
