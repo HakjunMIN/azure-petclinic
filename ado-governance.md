@@ -6,11 +6,66 @@ SDLC를 위한 권한, 보안, 통제 정책을 중앙집중적으로 관리
 * Organization: Team, Azur AD 그룹
 * 프로젝트: 보드, 리파지토리, 파이프라인, 아티팩트, 테스트관리
 
+## 예시 아키텍처
+Azure AD와 ADO를 연계관리하고 보드 권한통제, CI/CD 파이프라인 통제, 클러스터 연계등을 구현
+![예시아키텍처](img/ado-gov-sample-architecture.png)
+> 공식 예시 아키텍처는 https://docs.microsoft.com/ko-kr/azure/architecture/example-scenario/governance/end-to-end-governance-in-azure#architecture 참고
+
+1. Azure AD에서 개발자그룹, 어드민, 릴리즈 매니저 그룹을 생성. 사용자 할당
+
+    > 개발자그룹 내 SRE를 포함한다고 가정
+
+2. Azure AD그룹을 ADO 그룹에 매핑함. 전체 ADO 기본 그룹은 [링크](https://docs.microsoft.com/ko-kr/azure/devops/organizations/security/about-permissions?view=azure-devops&tabs=preview-page#default-security-groups) 참고 
+
+3. Azure Boards와 테스트관리에 ADO그룹을 이용하여 Permission을 설정할 수 있음.
+기본 권한은 [링크](https://docs.microsoft.com/ko-kr/azure/devops/organizations/security/permissions-access?view=azure-devops#azure-boards)와 같으나 상세 Permission을 워크플로우화 하여 정의할 수 있음.
+    * 사용자 정의 비즈니스 워크플로우 정의 참고: https://docs.microsoft.com/ko-kr/azure/devops/organizations/security/set-permissions-access-work-tracking?view=azure-devops#support-business-workflows-through-custom-rules
+  
+4. ADO의 빌드 Admin만 빌드 파이프라인을 관리할 수 있음. 다만, 빌드 파이프라인을 yaml로 관리하고 리파지토리 커밋에 의한 자동 CI는 리파지토리 권한에 의해 실행될 수 있음.
+
+    > CI와 개발계 배포 파이프라인은 리파지토리의 태깅 푸시에 의해 빌드파이프라인에서 처리되도록 설정하여 개발팀 자율적으로 배포할 수 있게 설정할 수 있음. 아래 sample yaml참고
+ 
+    ```yaml
+    # 트리거부문 
+    trigger:
+    tags:
+        include:
+        - '*'
+    branches:  
+        include:
+        - '*'
+    ...
+    # 특정 태깅에 따른 개발계 배포
+    - stage: Deploy
+      displayName: Deploy stage
+      dependsOn: Build
+      condition: OR(contains(variables['build.sourceBranch'], 'RC'), contains(variables['build.sourceBranch'], 'RELEASE'))
+
+      jobs:
+      - deployment: Deploy
+    ...
+    ```
+
+5. ADO와 Azure의 서비스는 Service Principal(SP)를 이용하여 서비스 연계
+
+    빌드나 릴리즈 파이프라인에서 AKS 배포를 위한 연계는 Azure AD에서 생성해놓은 SP를 사용. SP는 배포를 위해 클러스터의 `Contributor`의 권한을 가지고 있어야 함.
+
+6. 빌드 파이프라인에서 ACR로 이미지를 Push할 경우에도 `Dev-SP`를 이용하여 연계후 RBAC통제
+
+7. 빌드 파이프라인 및 개발계 배포 CD에서 앱 배포시 `Dev-SP` 사용
+
+8. 릴리즈 파이프라인에서 운영계 배포시 별도의 `Prod-SP` 사용
+
+9. 클러스터에서 Persistence 연결 시 비밀 정보는 KeyVault로 중앙집중 관리
+
 ## ADO와 Azure AD 통합
-Azure AD와 ADO를 연계하여 관리하는 것을 권고. 
+Azure AD와 ADO를 연계하여 관리
 1. Organization을 Azure 에 연결: https://docs.microsoft.com/ko-kr/azure/devops/organizations/accounts/connect-organization-to-azure-ad?view=azure-devops
+
 2. Azure AD에 사용자 추가: https://docs.microsoft.com/ko-kr/azure/active-directory/fundamentals/add-users-azure-active-directory
+
 3. ADO 그룹에 Azure AD그룹 추가: https://docs.microsoft.com/ko-kr/azure/devops/organizations/accounts/manage-azure-active-directory-groups?view=azure-devops
+
 4. ADO에서 권한 할당은 그룹 단위로 설정할 것을 권고: https://docs.microsoft.com/ko-kr/azure/devops/organizations/accounts/assign-access-levels-by-group-membership?view=azure-devops&tabs=preview-page
 
 ## 프로젝트
@@ -59,14 +114,14 @@ Service Principal(SP)로 AKS, ACR연계. SP는 Azure AD에서 RBAC관리. AKS �
   2. 기존 생성된 SP 연결:  https://docs.microsoft.com/ko-kr/azure/devops/pipelines/library/connect-to-azure?view=azure-devops#create-an-azure-resource-manager-service-connection-with-an-existing-service-principal
 * ACR도 SP를 통해 ADO와 연결: https://docs.microsoft.com/en-us/azure/devops/pipelines/ecosystems/containers/acr-template?view=azure-devops
 ### 빌드 파이프라인
-Pull Request나 Commit시 수행되도록 설정
-마지막 스테이지는 ACR에 이미지 배포
-
+* Pull Request나 Commit시 수행되도록 설정
+* ACR에 이미지 배포
+* 개발계는 리파지토리 태깅으로 트리거링 되어 배포할 수 있도록 설정가능.
 ### 릴리즈 파이프라인
-개발계, 테스트(스테이징)계, 운영계를 분리하여 태깅으로 트리거링 되도록 설정
-테스트계와 운영계는 관리자 승인이 있어야 진행되도록 설정
-운영 배포 실패시 바로 롤백할 수 있는 메커니즘 필요
 
+* 테스트계와 운영계는 관리자 승인이 있어야 진행되도록 워크플로우 화
+* 운영 배포 실패시 바로 롤백할 수 있는 메커니즘 필요
+    > 예시삽입
 
 ## DevOps Starter를 통한 구성
 DevOps Starter를 통해 AKS에 앱이 CI/CD를 통해 배포되는 과정을 테스트해볼 수 있음
