@@ -58,6 +58,14 @@ Azure AD와 ADO를 연계관리하고 보드 권한통제, CI/CD 파이프라인
 
 9. 클러스터에서 Persistence 연결 시 비밀 정보는 KeyVault로 중앙집중 관리
 
+10. 클러스터와 Azure AD를 연계하여 RBAC통제
+
+|종류|특징|가이드|
+|---|---|---|
+|Azure AD와 K8S RBAC|클러스터가 복합적이며 네임스페이셔 별 복잡한 Role관리 필요시, K8S 표준 RBAC 요구시|[가이드](https://docs.microsoft.com/ko-kr/azure/aks/manage-azure-rbac)|
+|Azure AD와 AKS RBAC|클러스터 내 Role 구조가 단순 단순|[가이드](https://docs.microsoft.com/ko-kr/azure/aks/azure-ad-rbac)|
+
+
 ## ADO와 Azure AD 통합
 Azure AD와 ADO를 연계하여 관리
 1. Organization을 Azure 에 연결: https://docs.microsoft.com/ko-kr/azure/devops/organizations/accounts/connect-organization-to-azure-ad?view=azure-devops
@@ -129,7 +137,10 @@ Service Principal(SP)로 AKS, ACR연계. SP는 Azure AD에서 RBAC관리. AKS �
     Helm Chart로 구성 시 Rollback 및 히스토리 관리가 매우 용이. 위 릴리즈 파이프라인 문서 내 롤백 참고
 
 ## DevOps Starter를 통한 구성
+
 DevOps Starter를 통해 AKS에 앱이 CI/CD를 통해 배포되는 과정을 테스트해볼 수 있음
+
 * DevOps Starter 실습: https://docs.microsoft.com/ko-kr/azure/devops-project/azure-devops-project-aks)
+* 혹은 본 프로젝트의 [README](README.md)를 통해 실습할 수 있음.
 
 ## Azure DevOps 거버넌스 데모 : https://github.com/azure/devops-governance
