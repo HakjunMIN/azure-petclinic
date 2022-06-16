@@ -119,12 +119,17 @@ Service Principal(SP)로 AKS, ACR연계. SP는 Azure AD에서 RBAC관리. AKS �
 * 개발계는 리파지토리 태깅으로 트리거링 되어 배포할 수 있도록 설정가능.
 ### 릴리즈 파이프라인
 
-* 테스트계와 운영계는 관리자 승인이 있어야 진행되도록 워크플로우 화
+* 운영계는 관리자 승인이 있어야 진행되도록 워크플로우 화. 아래 예시처럼 승인과정을 넣어 Release Manager에 승인이 필요하도록 설정가능
+  * 가이드: https://docs.microsoft.com/ko-kr/azure/devops/pipelines/release/approvals/approvals?view=azure-devops
+  * 예시 워크플로우
+    ![예시워크플로우](img/goal-pipeline.png)
+* 릴리즈 파이프라인 설계 샘플은 아래 참고
+  * [릴리즈 파이프라인](release-pipeline.md)
 * 운영 배포 실패시 바로 롤백할 수 있는 메커니즘 필요
-    > 예시삽입
+    Helm Chart로 구성 시 Rollback 및 히스토리 관리가 매우 용이. 위 릴리즈 파이프라인 문서 내 롤백 참고
 
 ## DevOps Starter를 통한 구성
 DevOps Starter를 통해 AKS에 앱이 CI/CD를 통해 배포되는 과정을 테스트해볼 수 있음
 * DevOps Starter 실습: https://docs.microsoft.com/ko-kr/azure/devops-project/azure-devops-project-aks)
 
-## 핸즈온: https://github.com/azure/devops-governance
+## Azure DevOps 거버넌스 데모 : https://github.com/azure/devops-governance
