@@ -16,9 +16,13 @@ resources:
 variables:
 
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: '<your-registry-connection>'
-  imageRepository: '<your-project(imagename)>'
-  containerRegistry: '<your-registry>.azurecr.io'
+  # dockerRegistryServiceConnection: '<your-registry-connection>'
+  # imageRepository: '<your-project(imagename)>'
+  # containerRegistry: '<your-registry>.azurecr.io'
+
+  dockerRegistryServiceConnection: '762c290f-a538-4b5f-909e-4f7331b38966'
+  imageRepository: 'azurespring'
+  containerRegistry: 'azurespringacr.azurecr.io'
   dockerfilePath: '**/Dockerfile'
   tag: '$(Build.BuildId)'
   imagePullSecret: 'azurespringacr1580782c-auth'
