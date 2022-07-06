@@ -89,6 +89,13 @@
     
     sampleapp의 기본값인 values.yaml에 values-qa.yaml에서 정의한 값만 override되어 생성됨
 
+    > [!NOTE]
+    > 아래와 같이 helm명령어의 set value로도 오버라이드할 수 있음.
+
+    ```bash
+    $ helm upgrade --install sampleapp --set imagePullSecrets[0].name=azurespringacr6471fd99-auth
+    ```
+
 6. 작성이 완료되면 library chart를 다운받기 위해 아래명령어 수행
 
     ```bash
