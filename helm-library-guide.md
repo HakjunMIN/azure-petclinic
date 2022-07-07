@@ -8,14 +8,14 @@
 가이드: https://helm.sh/docs/topics/library_charts/ 
 
 > [!IMPORTANT]
-> 대안으로 아래 오픈소스 라이브러리 1)차트를 직접 이용하거나 2) 클론하여 직접 template을 변경하여 helm repo (ACR사용가능)에 배포하여 프로젝트에서 이용하게 하거나 3) 이 차트를 이용하고 일부 template만 override (template폴더에 필요한 부분만 수정하여 재정의)하여 사용할 수 있음.
+> 대안으로 1) 아래 오픈소스 라이브러리 차트를 직접 이용하거나 2) 클론하여 직접 template을 변경하여 helm repo (ACR사용가능)에 배포하여 프로젝트에서 이용하게 하거나 3) 이 차트를 이용하고 일부 template만 override (template폴더에 필요한 부분만 수정하여 재정의)하여 사용할 수 있음.
 ## 오픈소스 라이브러리 차트 사용
 
 이 리파지토리의 Helm Chart는 라이브러리 차트로 리팩토링 됨.
 
 1. 사용 라이브러리 차트: https://github.com/k8s-at-home/library-charts/tree/main/charts/stable/common
 
-    > [!Note]
+    > [!NOTE]
     > https://docs.k8s-at-home.com/our-helm-charts/development/creating-a-new-chart/를 사용하여 생성할 수도 있음.
 
 2. `Chart.yaml` 디펜던시 정의
@@ -34,6 +34,9 @@
     ```yaml
     {{ include "common.all" . }}
     ```
+
+    >[!NOTE]
+    >필요한 템플릿을 추가하여 사용할 수 있음.
 
 4. `values.yaml`에서 필요한 것들만 아래 전체 항목이 정의된 문서에서 Pick하여 정의
 
@@ -99,13 +102,13 @@
     $ helm upgrade --install sampleapp --set imagePullSecrets[0].name=azurespringacr6471fd99-auth
     ```
 
-6. 작성이 완료되면 library chart를 다운받기 위해 아래명령어 수행
+7. 작성이 완료되면 library chart를 다운받기 위해 아래명령어 수행
 
     ```bash
     $ helm dependency update
     ```
 
-7. 테스트
+8. 테스트
 
     `template`명령어로 Kubernetes Manifest를 생성 테스트
 
