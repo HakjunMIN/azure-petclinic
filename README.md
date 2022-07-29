@@ -550,6 +550,9 @@ condition: OR(contains(variables['build.sourceBranch'], 'RC'), contains(variable
 
 > Stage배포를 복사하여 Environment만 변경한 후 Prod배포 스크립트를 완성.
 
+> [!IMPORTANT]
+> 본 프로젝트는 Helm Library Chart로 리팩토링 됨.
+> [이 문서](helm-library-guide.md)를 참고할 것.
 ### 파이프라인 테스트
 
 #### CI 테스트

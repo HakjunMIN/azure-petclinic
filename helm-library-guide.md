@@ -115,3 +115,6 @@
     ```bash
     $ helm template testapp ./sampleapp
     ```
+
+> [!NOTE]
+> `Application/charts` 구현 참고
