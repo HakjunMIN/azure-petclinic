@@ -1,3 +1,4 @@
 Application/target
 .vscode
 temp.yaml
+.log.md
